@@ -18,17 +18,29 @@ import {
 import type { JsonApiResource, JsonApiResponse } from "../types.js";
 import { composeDescription } from "./description-builders.js";
 
+/** Grid-row marker the BoondManager UI sends for a line that has no row yet. */
+export const NEW_TIME_ROW = -1;
+
 /**
  * One CRA line, as the API stores it: nested `workUnitType`, `project`,
  * `delivery`, `batch` objects around the flat ids the schema takes. A missing
  * project / delivery / batch is sent as `null`, which is how the API itself
  * represents an absence line (`GET /times-reports/{id}` → `"project": null`).
+ *
+ * `row: -1` is required: a PUT whose lines carry no `row` answers 200, bumps
+ * `updateDate` and silently stores zero lines (observed live, 2026-11-17). The
+ * UI serializes every new line with `row: -1` and a production line with
+ * `workUnitType.activityType: "production"`; both are mirrored here.
  */
 export function buildTimeLine(line: TimesheetLineInput): Record<string, unknown> {
   const { workUnitTypeReference, projectId, deliveryId, batchId, ...rest } = line;
   return {
     ...Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined)),
-    workUnitType: { reference: workUnitTypeReference },
+    row: NEW_TIME_ROW,
+    workUnitType:
+      projectId === undefined
+        ? { reference: workUnitTypeReference }
+        : { reference: workUnitTypeReference, activityType: "production" },
     project: projectId === undefined ? null : { id: projectId },
     delivery: deliveryId === undefined ? null : { id: deliveryId },
     batch: batchId === undefined ? null : { id: batchId },

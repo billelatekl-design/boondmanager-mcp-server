@@ -79,6 +79,18 @@ below and fix this section.
   codes (`1` Normale/production, `4` RTT, `5` Maladie, `9` Intervention…),
   which `/application/dictionary` and `/agencies/{id}` do not publish. This is
   why `boond_timesheets_default` exists and renders that resource attribute.
+- **Observed (write, 2026-11-17, production tenant, one PUT on an empty
+  report)**: `PUT /times-reports/{id}` with 22 lines shaped `{ startDate,
+  duration, workUnitType: { reference }, project, delivery, batch: null }`
+  answered **200**, bumped `updateDate` and stored **zero** lines — a silent
+  failure. The UI's own serializer (Ember store, read in the page without
+  sending) emits every *new* line with **`row: -1`** and, on production
+  lines, `workUnitType.activityType: "production"`; existing lines keep their
+  `id` and server-assigned `row`. The UI writes to `/api/timesreports/{id}`
+  (no hyphen); `/times-reports/{id}` reads fine and accepted the PUT, so the
+  path is not the suspect. `buildTimeLine` now sends `row: -1` and the
+  activity type. **Still to confirm with one live write** that this shape
+  persists the lines.
 - **Unverified (write)**: whether an absent `project` / `delivery` / `batch`
   must be `null` (what the API echoes — what `buildTimeLine` sends) or
   `{ id: null }` (what `/expenses-reports` demanded for `batch`); whether

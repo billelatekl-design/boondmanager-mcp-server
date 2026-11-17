@@ -266,7 +266,8 @@ describe("registerTimesheetTools", () => {
       ).toEqual({
         startDate: "2026-10-01",
         duration: 1,
-        workUnitType: { reference: 1 },
+        row: -1,
+        workUnitType: { reference: 1, activityType: "production" },
         project: { id: "2947" },
         delivery: { id: "18360" },
         batch: null,
@@ -275,6 +276,7 @@ describe("registerTimesheetTools", () => {
         {
           startDate: "2026-10-15",
           duration: 0.5,
+          row: -1,
           workUnitType: { reference: 4 },
           project: null,
           delivery: null,
@@ -308,7 +310,8 @@ describe("registerTimesheetTools", () => {
               {
                 startDate: "2026-10-01",
                 duration: 1,
-                workUnitType: { reference: 1 },
+                row: -1,
+                workUnitType: { reference: 1, activityType: "production" },
                 project: { id: "2947" },
                 delivery: { id: "18360" },
                 batch: null,
