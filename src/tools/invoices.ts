@@ -97,6 +97,8 @@ export function registerInvoiceTools(server: McpServer): void {
 
 \`companyId\` / \`projectId\` sont convertis en références \`keywords\` (\`CSOC<id>\`, \`PRJ<id>\`) — l'API n'a pas de paramètre dédié et ignorerait un \`companyId\` brut.
 
+Montant facturé (« combien a-t-on facturé pour X en <mois> ») : répondre depuis la facture elle-même — la trouver ici (\`projectId\` + \`period: "period"\`), puis lire ses lignes avec \`boond_invoices_information\` (une régularisation ou un frais peut s'ajouter aux jours × TJM). Ne pas recalculer un montant quand la facture existe. Si aucune facture ne couvre la période, le dire explicitement, puis proposer une **estimation** : jours du CRA validé (\`boond_timesheets_get\`) × TJM de la prestation (\`boond_deliveries_search\`, \`averageDailyPriceExcludingTax\`), présentée comme telle et jamais comme un montant facturé.
+
 Returns : page de résumés (référence, date, montants HT/TTC, état). Lecture seule.`,
       inputSchema: InvoiceSearchSchema,
       outputSchema: SearchOutputSchema,

@@ -5,6 +5,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `boond_invoices_search` : la description indique comment répondre à « combien a-t-on facturé » — depuis la facture et ses lignes (`boond_invoices_information`), sans recalcul quand elle existe ; sinon le signaler et proposer une estimation CRA validé × TJM de la prestation, présentée comme telle.
+
 ### Fixed
 
 - `boond_timesheets_create` / `boond_timesheets_update` : chaque ligne de CRA porte désormais `row: -1` (nouvelle ligne de grille) et, en production, `workUnitType.activityType: "production"`, comme l'interface BoondManager. Sans `row`, un PUT réel répondait 200 et n'enregistrait aucune ligne (échec silencieux observé le 2026-11-17). Forme relevée sur le sérialiseur de l'interface ; persistance encore à confirmer par une écriture réelle.
