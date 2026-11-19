@@ -7,6 +7,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `boond_candidates_update` : `availability` accepte une date `YYYY-MM-DD` en plus d'un ID du dictionnaire — c'est le choix « À partir de … » de l'interface, absent de `setting.availability`. Observé en réel le 2026-11-19 (date stockée et relue telle quelle).
 - `boond_invoices_search` : la description indique comment répondre à « combien a-t-on facturé » — depuis la facture et ses lignes (`boond_invoices_information`), sans recalcul quand elle existe ; sinon le signaler et proposer une estimation CRA validé × TJM de la prestation, présentée comme telle.
 
 ### Fixed

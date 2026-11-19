@@ -631,6 +631,26 @@ export const PositioningUpdateSchema = z
   })
   .strict();
 
+/**
+ * Candidate availability, as `PUT /candidates/{id}/information` stores it:
+ * either a `setting.availability` id (Immédiate, P1…, Plus dispo) or a bare
+ * `YYYY-MM-DD` date. The date is the UI's « À partir de … » choice, which the
+ * dictionary does not list; observed live on 2026-11-19 (the UI serialized
+ * `availability: "2027-07-01"`, a read returned it unchanged).
+ */
+export const availabilityField = z
+  .union([
+    z.number().int(),
+    z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Date de disponibilité au format YYYY-MM-DD (ex: 2027-07-01)"),
+  ])
+  .optional()
+  .describe(
+    "Disponibilité : ID du dictionnaire `setting.availability` (Immédiate, P1, P2…), " +
+      "ou une date YYYY-MM-DD pour « À partir de … » (ex: 2027-07-01 pour une dispo en juillet 2027)."
+  );
+
 export const CandidateUpdateSchema = z
   .object({
     id: EntityIdSchema.describe("ID du candidat à modifier"),
@@ -647,11 +667,7 @@ export const CandidateUpdateSchema = z
     address: z.string().optional().describe("Adresse (rue et numéro)"),
     postcode: z.string().optional().describe("Code postal"),
     town: z.string().optional().describe("Ville, telle que stockée par l'onglet Information (`town`)"),
-    availability: z
-      .number()
-      .int()
-      .optional()
-      .describe("Disponibilité : ID numérique du dictionnaire `setting.availability`"),
+    availability: availabilityField,
     mobilityAreas: z
       .array(z.string())
       .optional()

@@ -42,6 +42,19 @@ describe("registerCandidateTools", () => {
     expect(method).toBe("PUT");
   });
 
+  it("sends an « À partir de » availability as a bare YYYY-MM-DD date", async () => {
+    registerCandidateTools(server);
+    const apiSpy = vi
+      .spyOn(boondClient, "apiRequest")
+      .mockResolvedValue({ data: { id: "2242", type: "candidate", attributes: {} } } as never);
+
+    const handler = getHandler(server, "boond_candidates_update");
+    await handler({ id: "2242", availability: "2027-07-01" });
+
+    const body = apiSpy.mock.calls[0]?.[2] as { data: { attributes: Record<string, unknown> } };
+    expect(body.data.attributes.availability).toBe("2027-07-01");
+  });
+
   it("should register CRUD tools + 5 tab tools + 2 tab-write tools = 12 total", () => {
     registerCandidateTools(server);
     expect(server.registerTool).toHaveBeenCalledTimes(12);
