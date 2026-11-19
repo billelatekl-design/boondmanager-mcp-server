@@ -78,8 +78,17 @@ halves of that exception have to stay together (issue #186):
 `oneOf` would be unreadable for the model and is not needed). Guards live in
 `src/services/upload-source.ts`:
 
-- `filePath` is **off unless `BOOND_MCP_UPLOAD_DIRS` is set**, and always
+- `filePath` is **off while `BOOND_MCP_UPLOAD_DIRS` is absent**, and always
   refused over HTTP (the server does not run on the user's machine there).
+  `~` / `${HOME}` / `$HOME` are expanded (`readPathList`) before the
+  "not configured" rule, because a packaged channel may pass
+  `${HOME}/Downloads` through unsubstituted. **Deliberate exception to the
+  blank-means-unset rule**: a variable that is *defined* but empty (option
+  left blank in the MCPB / plugin form) defaults to `~/Downloads` — only the
+  packaged desktop channels define it without a value, the server then runs
+  on the user's machine, and the assistant uses that folder as a transit zone
+  for chat attachments (observed 2026-11-19: the MCPB default
+  `${HOME}/Downloads` reached the server unusable and attachments failed).
   Containment compares `realpath` on both sides — never a string prefix of the
   raw input — and appends a separator so `/allowed-evil` does not match
   `/allowed`.

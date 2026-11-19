@@ -20,6 +20,8 @@
  * modules that already accept an `env` for testing keep doing so.
  */
 
+import { homedir } from "node:os";
+
 const TRUE_VALUES = new Set(["1", "true", "yes", "on"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
 
@@ -88,6 +90,28 @@ export function readCsv(name: string, env: NodeJS.ProcessEnv = process.env): str
     .split(/[\s,]+/)
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
+  return items.length > 0 ? items : undefined;
+}
+
+/**
+ * A list of filesystem paths, read like {@link readCsv} but with the home
+ * directory expanded first: a leading `~` and every `${HOME}` / `$HOME` become
+ * `env.HOME` (or `os.homedir()`). Expansion runs **before** the "not
+ * configured" rule, so `${HOME}/Downloads` — what a packaged channel may pass
+ * through unsubstituted — is a real path, while `${user_config.x}` (an option
+ * left empty) still reads as unset.
+ */
+export function readPathList(name: string, env: NodeJS.ProcessEnv = process.env): string[] | undefined {
+  const raw = env[name];
+  if (raw === undefined) return undefined;
+  const home = env.HOME !== undefined && env.HOME.trim().length > 0 ? env.HOME : homedir();
+  const expanded = raw.replace(/\$\{HOME\}|\$HOME(?![A-Za-z0-9_])/g, home);
+  if (isUnset(expanded)) return undefined;
+  const items = expanded
+    .split(/[\s,]+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+    .map((s) => (s === "~" || s.startsWith("~/") ? home + s.slice(1) : s));
   return items.length > 0 ? items : undefined;
 }
 

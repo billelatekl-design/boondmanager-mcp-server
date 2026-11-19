@@ -20,7 +20,7 @@
  */
 import { readFile, realpath, stat } from "node:fs/promises";
 import { basename, extname, isAbsolute, sep } from "node:path";
-import { readCsv, readPositiveInt } from "../config/env.js";
+import { readPathList, readPositiveInt } from "../config/env.js";
 import { resolveTransport } from "../config/transport-kind.js";
 import { DEFAULT_UPLOAD_MAX_BYTES, INLINE_UPLOAD_MAX_BYTES } from "../constants.js";
 
@@ -113,9 +113,23 @@ function mb(bytes: number): string {
   return (bytes / 1024 / 1024).toFixed(1);
 }
 
-/** The allowed upload directories, resolved to real paths. Missing ones are skipped. */
+/**
+ * The allowed upload directories, resolved to real paths. Missing ones are skipped.
+ *
+ * `BOOND_MCP_UPLOAD_DIRS` configured → those directories (`~` / `${HOME}`
+ * expanded). Defined but left empty (`""`, blanks, an unsubstituted `${…}`) →
+ * the user's Downloads folder: only the packaged desktop channels (MCPB,
+ * Claude Code plugin) define the variable without a value, and there the
+ * server runs on the user's own machine — one bounded transit folder where
+ * the assistant drops a chat attachment before sending it. Absent → local
+ * reads stay off (npm / Docker / HTTP deployments opt in explicitly).
+ */
 async function allowedDirs(env: NodeJS.ProcessEnv): Promise<string[] | undefined> {
-  const raw = readCsv("BOOND_MCP_UPLOAD_DIRS", env);
+  const raw =
+    readPathList("BOOND_MCP_UPLOAD_DIRS", env) ??
+    (env.BOOND_MCP_UPLOAD_DIRS !== undefined
+      ? readPathList("BOOND_MCP_UPLOAD_DIRS", { ...env, BOOND_MCP_UPLOAD_DIRS: "~/Downloads" })
+      : undefined);
   if (!raw) return undefined;
   const resolved: string[] = [];
   for (const dir of raw) {

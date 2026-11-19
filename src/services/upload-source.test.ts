@@ -84,11 +84,8 @@ describe("readLocalUpload", () => {
     expect(file).toEqual({ data: PDF, filename: "cv.pdf", contentType: "application/pdf" });
   });
 
-  it("is disabled until BOOND_MCP_UPLOAD_DIRS is set — blank counts as unset", async () => {
-    await expect(readLocalUpload(join(allowed, "cv.pdf"), {})).rejects.toThrow(/BOOND_MCP_UPLOAD_DIRS/);
-    await expect(readLocalUpload(join(allowed, "cv.pdf"), { BOOND_MCP_UPLOAD_DIRS: "  " })).rejects.toThrow(
-      /désactivé/
-    );
+  it("is disabled while BOOND_MCP_UPLOAD_DIRS is absent", async () => {
+    await expect(readLocalUpload(join(allowed, "cv.pdf"), {})).rejects.toThrow(/désactivé/);
   });
 
   it("is refused over the HTTP transport even when directories are allowed", async () => {
@@ -115,6 +112,29 @@ describe("readLocalUpload", () => {
       /trop volumineux/
     );
     await expect(readLocalUpload(join(allowed, "fake.pdf"), env())).rejects.toThrow(/Format non accepté/);
+  });
+
+  it("expands ${HOME}, $HOME and a leading ~ in the allowed directories", async () => {
+    for (const value of ["${HOME}/allowed", "$HOME/allowed", "~/allowed"]) {
+      const file = await readLocalUpload(join(allowed, "cv.pdf"), { HOME: root, BOOND_MCP_UPLOAD_DIRS: value });
+      expect(file.filename).toBe("cv.pdf");
+    }
+  });
+
+  it("defaults to ~/Downloads when a packaged install left the option empty", async () => {
+    const home = await mkdtemp(join(tmpdir(), "boond-home-"));
+    try {
+      await mkdir(join(home, "Downloads"));
+      await writeFile(join(home, "Downloads", "cv.pdf"), PDF);
+      for (const unset of ["${user_config.upload_dirs}", "", "  "]) {
+        const env = { HOME: home, BOOND_MCP_UPLOAD_DIRS: unset };
+        expect((await readLocalUpload(join(home, "Downloads", "cv.pdf"), env)).filename).toBe("cv.pdf");
+        // Only Downloads: the rest of the disk stays out of reach.
+        await expect(readLocalUpload(join(allowed, "cv.pdf"), env)).rejects.toThrow(/hors des répertoires/);
+      }
+    } finally {
+      await rm(home, { recursive: true, force: true });
+    }
   });
 
   it("accepts several comma-separated directories and ignores relative or missing entries", async () => {
