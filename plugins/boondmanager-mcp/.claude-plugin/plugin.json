@@ -111,6 +111,13 @@
       "title": "Libellés personnalisés du dictionnaire",
       "description": "Mapping libellé→ID pour les instances BoondManager aux dictionnaires personnalisés : JSON inline (commence par {) ou chemin vers un fichier JSON UTF-8. Ex: {\"action\":{\"contact\":{\"Call\":61}},\"state\":{\"candidate\":{\"Interviewed\":2}}}. Voir docs/dictionary-overrides.md.",
       "required": false
+    },
+    "upload_dirs": {
+      "type": "directory",
+      "title": "Dossier autorisé pour les pièces jointes",
+      "description": "Dossier local dont boond_documents_create peut envoyer les fichiers à BoondManager (CV, bons de commande…) via `filePath`. Par défaut : Téléchargements. Les fichiers hors de ce dossier sont refusés (liens symboliques résolus).",
+      "required": false,
+      "default": "${HOME}/Downloads"
     }
   }
 }
